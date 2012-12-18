@@ -40,23 +40,37 @@ function buildZip(name, data) {
 		content = zip.generate();
 		location.href="data:application/zip;base64,"+ content;
 	}
+
+	// Fire an event to let everyone know we're done
+	$.event.trigger({
+		type: "built",
+		message: "Zip complete!",
+		time: new Date()
+	});
 }
 
 /* Wraps the metadata fetching and image conversion
 */
-function zipImages(user, data) {
-	var items = data.query.results.json.items;
-	var more_available = data.query.results.json.more_available;
+function zipImages(user, items) {
+
+	$.event.trigger({
+		type: "building",
+		message: "Building zip!",
+		time: new Date()
+	});
 	var instagrams = new Array();
 	var response = false;
+
+
+	$.event.trigger({
+		type: "imgload",
+		message: "Loading images...",
+		time: new Date()
+	});
 
 	$.each(items, function(index, metagram){
 		var img = metagram.images.standard_resolution
 
-		if (more_available == true) {
-			response = metagram.id
-		}
-		
 		// Tried using YQL for this, but there's a 25KB limit on base64 image results :(
 		$.getJSON("https://base64convert.orchestra.io/?url=" + img.url + "&callback=?", function(converted){
 			instagrams.push({"data": converted.data,
@@ -69,20 +83,98 @@ function zipImages(user, data) {
 	return response;
 }
 
+function getMeta(user, max_id){
+	/*
+		Use YQL as a JSONP proxy
+	*/
+
+	var url;
+	if (max_id == null) {
+		url = [ "https://query.yahooapis.com/v1/public/yql?q=",
+		"select%20*%20from%20json%20where%20url%3D%22http%3A%2F%2Finstagram.com%2F",
+		user, "%2Fmedia%22&format=json&callback=?"].join("");
+	} else {
+		url = [ "https://query.yahooapis.com/v1/public/yql?q=",
+		"select%20*%20from%20json%20where%20url%3D%22http%3A%2F%2Finstagram.com%2F",
+		user, "%2Fmedia%3Fmax_id%3D", max_id, "D%22&format=json&callback=?"].join("");
+	}
+
+	$.getJSON(url, function(data){
+		if (data.query.results.json) {
+			items = data.query.results.json.items;
+		}
+		if (items == undefined) {
+			$.event.trigger({
+				type: "meta",
+				message: "Metadata ready",
+				time: new Date()
+			});
+			return;
+		}
+
+		for (item in items) {
+			max_id = items[item].id
+		}
+		$.event.trigger({
+			type: "results",
+			message: {
+				"more_available": data.query.results.json.more_available,
+				"max_id": max_id,
+				"user": user,
+				"items": items
+			},
+			time: new Date()
+		});
+	});
+}
+
 $(document).ready(function(){
+
+	/*
+		Event spam!
+	*/
+	$(document).on("metaload", function(response) {
+		$("#status").text(response.message);
+	});
+	$(document).on("imgload", function(response) {
+		$("#status").text(response.message);
+	});
+	$(document).on("building", function(response) {
+		$("#status").text(response.message);
+	});
+	$(document).on("built", function(response) {
+		$("#status").text(response.message);
+	});
+
+
 	$("#create").click(function() {
 
-		var user = 'rduggan';
+		var user = $('input[name=user]').val();
 		var max_id = '';
 		var count = 0;
 
-		/*
-			Use YQL as a JSONP proxy
-			Only retrieves first 20 images right now. Avoiding server side parsing here is proving tricky.
-		*/
-		$.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%3D%22http%3A%2F%2Finstagram.com%2F"+user+"%2Fmedia%22&format=json&callback=?", function(data){
-			filename = user + count;
-			max_id = zipImages(filename, data);
+		var items = [];
+		
+		$(document).on("results", function(result){
+			response = result.message;
+			for (item in response["items"]) {
+				items.push(response["items"][item]);
+			}
+			if (response["more_available"]) {
+				getMeta(response["user"], response["max_id"])
+			}
+		});
+
+		$.event.trigger({
+			type: "metaload",
+			message: "Loading image metadata...",
+			time: new Date()
+		});
+		
+		getMeta(user);
+
+		$(document).on("meta", function() {
+			zipImages(user, items);
 		});
 
 	});
@@ -90,6 +182,10 @@ $(document).ready(function(){
 		</script>
 	</head>
 	<body>
-		<a id="create" href="#">Download Instagram Archive</a>
+		<form action="post">
+			Username: <input type="text" name="user" size=20 />
+		</form>
+		<button id="create" href="#">Download Instagram Archive</button>
+		<div id="status"></div>
 	</body>
 </html>
