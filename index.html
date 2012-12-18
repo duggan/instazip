@@ -58,7 +58,7 @@ function zipImages(user, data) {
 		}
 		
 		// Tried using YQL for this, but there's a 25KB limit on base64 image results :(
-		$.getJSON("http://base64convert.orchestra.io/?url=" + img.url + "&callback=?", function(converted){
+		$.getJSON("https://base64convert.orchestra.io/?url=" + img.url + "&callback=?", function(converted){
 			instagrams.push({"data": converted.data,
 			"id": metagram.id})
 			if (instagrams.length == items.length) {
@@ -80,7 +80,7 @@ $(document).ready(function(){
 			Use YQL as a JSONP proxy
 			Only retrieves first 20 images right now. Avoiding server side parsing here is proving tricky.
 		*/
-		$.getJSON("http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%3D%22http%3A%2F%2Finstagram.com%2F"+user+"%2Fmedia%22&format=json&callback=?", function(data){
+		$.getJSON("https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%3D%22http%3A%2F%2Finstagram.com%2F"+user+"%2Fmedia%22&format=json&callback=?", function(data){
 			filename = user + count;
 			max_id = zipImages(filename, data);
 		});
