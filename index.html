@@ -56,8 +56,9 @@ function zipImages(user, data) {
 		if (more_available == true) {
 			response = metagram.id
 		}
-
-		$.getJSON("http://www.wthax.org/convert.php?url=" + img.url + "&callback=?", function(converted){
+		
+		// Tried using YQL for this, but there's a 25KB limit on base64 image results :(
+		$.getJSON("http://base64convert.orchestra.io/?url=" + img.url + "&callback=?", function(converted){
 			instagrams.push({"data": converted.data,
 			"id": metagram.id})
 			if (instagrams.length == items.length) {
