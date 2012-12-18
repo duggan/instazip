@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Instazip</title>
+
+<script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
+<script type="text/javascript" src="js/jszip.js"></script>
+<script type="text/javascript" src="js/jszip-deflate.js"></script>
+<script>
+
+/* Make a zip file, uses (if available) builtin browser blob
+	functionality to get around URL size limit on base64 encoded zip
+*/
+function buildZip(name, data) {
+	var zip = new JSZip();
+	folder = zip.folder("instagram-" + name);
+	for (item in data) {
+		folder.file("image" + data[item]["id"] + ".png", data[item]["data"], {base64: true});
+	}
+
+	if (window.Blob) {
+
+		content = zip.generate({base64: false});
+
+		// Builds a byte array from our zip data
+		// Ref: http://stackoverflow.com/questions/13790949/downloading-generated-binary-content-contains-utf-8-encoded-chars-in-disk-file
+		len = content.length;
+		bytes = new Uint8Array(len);
+		for( var i = 0; i < len; ++i ) {
+			bytes[i] = content.charCodeAt(i);
+		}
+
+		var blob = new Blob([bytes], { type : 'application/zip' });
+		var oURL = (window.URL || window.webkitURL);
+
+		oURL = oURL.createObjectURL(blob);
+		location.href = oURL;
+
+	} else {
+		content = zip.generate();
+		location.href="data:application/zip;base64,"+ content;
+	}
+}
+
+/* Wraps the metadata fetching and image conversion
+*/
+function zipImages(user, data) {
+	var items = data.query.results.json.items;
+	var more_available = data.query.results.json.more_available;
+	var instagrams = new Array();
+	var response = false;
+
+	$.each(items, function(index, metagram){
+		var img = metagram.images.standard_resolution
+
+		if (more_available == true) {
+			response = metagram.id
+		}
+
+		$.getJSON("http://www.wthax.org/convert.php?url=" + img.url + "&callback=?", function(converted){
+			instagrams.push({"data": converted.data,
+			"id": metagram.id})
+			if (instagrams.length == items.length) {
+				buildZip(user, instagrams);
+			}
+		})
+	});
+	return response;
+}
+
+$(document).ready(function(){
+	$("#create").click(function() {
+
+		var user = 'rduggan';
+		var max_id = '';
+		var count = 0;
+
+		/*
+			Use YQL as a JSONP proxy
+			Only retrieves first 20 images right now. Avoiding server side parsing here is proving tricky.
+		*/
+		$.getJSON("http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%3D%22http%3A%2F%2Finstagram.com%2F"+user+"%2Fmedia%22&format=json&callback=?", function(data){
+			filename = user + count;
+			max_id = zipImages(filename, data);
+		});
+
+	});
+});
+		</script>
+	</head>
+	<body>
+		<a id="create" href="#">Download Instagram Archive</a>
+	</body>
+</html>
