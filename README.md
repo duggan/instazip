@@ -7,6 +7,8 @@ It uses the publically accessible "media" feed that Instagram uses for its web p
 
 Instazip uses a small chunk of server side code to perform base64 encoding. It's written in PHP, but is only a few lines of code, and easily replaced or relocated.
 
+Right now, the location of this can be customized by editing the `base64_conveter` variable in `js/instazip.js`
+
 A demo can be found online at: <http://instazip.orchestra.io>
 
 ## Goal
