@@ -13,3 +13,6 @@ A demo can be found online at: <http://instazip.orchestra.io>
 
 ## Goal
 The goal was to build an export tool that could be run locally, but I got stumped trying to get base64 encoded versions of images without including a little bit of server side code. A little creative use of YQL returns base64 encoded image strings, but the maximum allowed size of each image (or base64 string, maybe) is 25KB, which is far too low a limit for this.
+
+## Todo
+Much better error handling. It's basically non-existent.
