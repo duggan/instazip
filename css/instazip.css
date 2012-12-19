@@ -67,14 +67,15 @@ body {
     border-bottom: 3px solid #333;
 }
 .thing input {
-	height: 40px;
-	width: 300px;
+    height: 40px;
+    width: 300px;
     font-size: 1.0em;
+    text-align:center;
 }
 .thing button {
     font-size: 0.7em;
-	height: 40px;
-	width: 500px;
+    height: 40px;
+    width: 500px;
 }
 .thing .status {
     font-size: 0.7em;
