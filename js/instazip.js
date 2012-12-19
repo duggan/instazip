@@ -44,6 +44,12 @@ function buildZip(name, data) {
 */
 function zipImages(user, items) {
 
+	/* The location of the base64 converter.
+	 * @param url		(required)	Image URL
+	 * @param callback	(required)  JS callback
+	 */
+	var base64_converter = "https://base64convert.orchestra.io/";
+
 	$.event.trigger({
 		type: "building",
 		message: "Building zip!",
@@ -63,7 +69,7 @@ function zipImages(user, items) {
 		var img = metagram.images.standard_resolution
 
 		// Tried using YQL for this, but there's a 25KB limit on base64 image results :(
-		$.getJSON("https://base64convert.orchestra.io/?url=" + img.url + "&callback=?", function(converted){
+		$.getJSON(base64_converter + "?url=" + img.url + "&callback=?", function(converted){
 			instagrams.push({"data": converted.data,
 			"id": metagram.id})
 			if (instagrams.length == items.length) {
