@@ -3,13 +3,14 @@
 	functionality to get around URL size limit on base64 encoded zip
 */
 function buildZip(name, data) {
+
 	var zip = new JSZip();
 	folder = zip.folder("instagram-" + name);
 	for (item in data) {
 		folder.file("image" + data[item]["id"] + ".png", data[item]["data"], {base64: true});
 	}
 
-	if (window.Blob) {
+	if (window.Blob && window.URL) {
 
 		content = zip.generate({base64: false});
 
@@ -25,6 +26,7 @@ function buildZip(name, data) {
 		var oURL = (window.URL || window.webkitURL);
 
 		oURL = oURL.createObjectURL(blob);
+
 		location.href = oURL;
 
 	} else {
