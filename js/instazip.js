@@ -65,6 +65,7 @@ function zipImages(user, items) {
 		time: new Date()
 	});
 
+	var counter = 0;
 	$.each(items, function(index, metagram){
 		var img = metagram.images.standard_resolution
 
@@ -75,7 +76,13 @@ function zipImages(user, items) {
 			if (instagrams.length == items.length) {
 				buildZip(user, instagrams);
 			}
-		})
+			counter++;
+			$.event.trigger({
+				type: "imgload",
+				message: "Loading image ("+counter+" of "+items.length+")",
+				time: new Date()
+			});
+		});
 	});
 	return response;
 }
